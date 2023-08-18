@@ -55,7 +55,7 @@ const getOncallData = async () => {
 
   const toReport = incidents.resource.filter((el) => {
     const hourCreated = new Date(el.created_at).getHours() + 2;
-    console.log(hourCreated);
+  
     return (
       (hourCreated >= 20 && hourCreated <= 23) ||
       (hourCreated >= 0 && hourCreated <= 8)
@@ -67,7 +67,7 @@ const getOncallData = async () => {
     .filter((el) => el.escalation_level === 1)
     .filter((el) => {
       const end = new Date(el.end);
-      console.log(end, end_date);
+  
       return end <= end_date;
     });
 
