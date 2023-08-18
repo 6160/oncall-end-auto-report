@@ -9,6 +9,37 @@ const tokens = {
 
 const pd = api({ token: tokens.pagerduty });
 
+const formatIncidents = (incidents) => {
+  const formatted = incidents.map((inc) => {
+    const str = `
+        ID: ${inc.id}
+        TITLE: ${inc.title}
+        DATE: ${inc.created_at} UTC
+    `;
+    return str;
+  });
+
+  return formatted.join("     -----");
+};
+
+const formatMessage = (oncalldata) => {
+  const formattedIncidents = formatIncidents(oncalldata.incidents);
+
+  const message = `
+###############
+ ONCALL REPORT
+###############
+
+EMPLOYEE: ${oncalldata.name}
+START: ${oncalldata.start_date.toLocaleString("it-IT")} UTC
+END: ${oncalldata.end_date.toLocaleString("it-IT")} UTC
+N. INCIDENTS: ${oncalldata.incidents.length}
+     DETAILS: ${formattedIncidents}
+  `;
+
+  return message;
+};
+
 const getOncallData = async () => {
   const today = new Date();
   const weekday = today.getUTCDay();
@@ -44,7 +75,7 @@ const getOncallData = async () => {
     name: oncalldev[0].user.summary,
     start_date,
     end_date,
-    incidents: toReport.length,
+    incidents: toReport,
   };
 
   return oncallData;
@@ -87,6 +118,6 @@ function sendMessage(message) {
 }
 
 const oncallData = await getOncallData();
-const message = `reperibile: ${oncallData.name}\ndata inizio: ${oncallData.start_date}\ndata fine: ${oncallData.end_date}\ninterventi: ${oncallData.incidents}`;
+const msg = formatMessage(oncallData);
 
-sendMessage(message);
+sendMessage(msg);
