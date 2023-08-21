@@ -1,10 +1,10 @@
 import { api } from "@pagerduty/pdjs";
 import https from "https";
 
-const channelId = ""; //set with channel you want to spam
+const channelId = process.env.SLACK_CHANNEL_ID; //set with channel you want to spam
 const tokens = {
-  pagerduty: "", // pagerduty api token
-  slack: "", // slack oauth token
+  pagerduty: process.env.PAGERDUTY_API_KEY, // pagerduty api token
+  slack: process.env.SLACK_API_KEY, // slack oauth token
 };
 
 const pd = api({ token: tokens.pagerduty });
@@ -25,7 +25,7 @@ const formatIncidents = (incidents) => {
 const formatMessage = (oncalldata) => {
   const formattedIncidents = formatIncidents(oncalldata.incidents);
 
-  const message = `
+  let message = `
 ###############
  ONCALL REPORT
 ###############
@@ -33,10 +33,12 @@ const formatMessage = (oncalldata) => {
 EMPLOYEE: ${oncalldata.name}
 START: ${oncalldata.start_date.toLocaleString("it-IT")} UTC
 END: ${oncalldata.end_date.toLocaleString("it-IT")} UTC
-N. INCIDENTS: ${oncalldata.incidents.length}
-     DETAILS: ${formattedIncidents}
-  `;
+N. INCIDENTS: ${oncalldata.incidents.length}`;
 
+  if (oncalldata.incidents.length > 0) {
+    message = `${message}\n\tDETAILS: ${formattedIncidents}`;
+  }
+  console.log(message);
   return message;
 };
 
@@ -55,7 +57,7 @@ const getOncallData = async () => {
 
   const toReport = incidents.resource.filter((el) => {
     const hourCreated = new Date(el.created_at).getHours() + 2;
-  
+
     return (
       (hourCreated >= 20 && hourCreated <= 23) ||
       (hourCreated >= 0 && hourCreated <= 8)
@@ -67,7 +69,7 @@ const getOncallData = async () => {
     .filter((el) => el.escalation_level === 1)
     .filter((el) => {
       const end = new Date(el.end);
-  
+
       return end <= end_date;
     });
 
